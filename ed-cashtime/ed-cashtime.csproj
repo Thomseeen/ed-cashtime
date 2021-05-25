@@ -3,13 +3,18 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net5.0-windows</TargetFramework>
-    <RootNamespace>ed_cashtime</RootNamespace>
+    <RootNamespace>EdCashtime</RootNamespace>
     <UseWPF>true</UseWPF>
+    <StartupObject>EdCashtime.App</StartupObject>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Ionic.Zlib.Core" Version="1.0.0" />
     <PackageReference Include="NetMQ" Version="4.0.1.6" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
+
+  <ProjectExtensions><VisualStudio><UserProperties exdata_1json__JsonSchema="https://eddn.edcd.io/schemas/commodity/3" /></VisualStudio></ProjectExtensions>
 
 </Project>

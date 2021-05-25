@@ -15,30 +15,36 @@ using System.Windows.Shapes;
 
 
 
-namespace ed_cashtime {
+namespace EdCashtime {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainView : Window {
+    public partial class MainView : Window, IDisposable {
         #region Private Fields
-        private MainViewModel _viewModel;
+        private readonly MainViewModel viewModel;
         #endregion
 
         #region Constructor
         public MainView() {
-            _viewModel = new MainViewModel();
+            viewModel = new MainViewModel();
 
-            DataContext = _viewModel;
+            DataContext = viewModel;
             InitializeComponent();
         }
         #endregion
 
-        private async void StartListening_Click(object sender, RoutedEventArgs e) {
-            await _viewModel.StartListeningAsync();
+        private void StartListening_Click(object sender, RoutedEventArgs e) {
+            viewModel.StartListening();
         }
 
         private void StopListening_Click(object sender, RoutedEventArgs e) {
-            _viewModel.StopListening();
+            viewModel.StopListening();
+        }
+
+        public void Dispose() {
+            viewModel.Dispose();
+
+            GC.SuppressFinalize(this);
         }
     }
 }
