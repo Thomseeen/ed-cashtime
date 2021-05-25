@@ -15,6 +15,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Globalization;
+using EdCashtime.Models;
 
 namespace EdCashtime {
     public class MainViewModel : IDisposable, INotifyPropertyChanged {
@@ -24,57 +25,68 @@ namespace EdCashtime {
 
         #region Private Fields
         private CancellationTokenSource cancellationTokenSource;
+        private bool listening;
+        private long messagesCnt;
 
-        private List<SearchCommodityModel> searchCommodities = new List<SearchCommodityModel>() {
+        private List<SearchCommodityModel> searchCommodities = new() {
             new SearchCommodityModel() {
-                Name="musgarvite",
-                DisplayName="Musgarvite",
-                MinBuyPrice=500,
-                MinBuyDemand=200
+                Name = "musgarvite",
+                DisplayName = "Musgarvite",
+                MinBuyPrice = 500,
+                MinBuyDemand = 200
             },
             new SearchCommodityModel() {
-                Name ="beer",
-                DisplayName="Beer",
-                MinBuyPrice=100,
-                MinBuyDemand=50
+                Name = "beer",
+                DisplayName = "Beer",
+                MinBuyPrice = 100,
+                MinBuyDemand = 50
             },
             new SearchCommodityModel() {
-                Name ="beer",
-                DisplayName="Beer",
-                MaxSellPrice=100,
-                MinStock=50
+                Name = "beer",
+                DisplayName = "Beer",
+                MaxSellPrice = 100,
+                MinStock = 50
             }
         };
         #endregion
 
         #region Properties
-        public ObservableCollection<string> RawLogStrings { get; private set; }
         public ObservableCollection<string> Alerts { get; private set; }
-
-        public string CombinedLogStrings => string.Join("\r\n", RawLogStrings);
         public string CombinedAlertStrings => string.Join("\r\n", Alerts);
 
-        public bool Listening { get; private set; }
+        public long MessagesCnt {
+            get { return messagesCnt; }
+            private set { messagesCnt = value; OnPropertyChanged(); }
+        }
+
+        public bool Listening {
+            get { return listening; }
+            private set { listening = value; OnPropertyChanged(); }
+        }
         #endregion
 
         #region Constructor
         public MainViewModel() {
-            RawLogStrings = new ObservableCollection<string>();
-            RawLogStrings.CollectionChanged += RawLogStrings_CollectionChanged;
             Alerts = new ObservableCollection<string>();
             Alerts.CollectionChanged += Alerts_CollectionChanged;
+
+            Listening = false;
         }
         #endregion
 
         #region Public Methods
         public async void StartListening() {
             cancellationTokenSource = new CancellationTokenSource();
+            Listening = true;
+
             await ListenLoop(cancellationTokenSource.Token);
         }
 
         public void StopListening() {
             cancellationTokenSource.Cancel();
             cancellationTokenSource.Dispose();
+
+            Listening = false;
         }
         #endregion
 
@@ -101,6 +113,8 @@ namespace EdCashtime {
                     using JsonTextReader jsonreader = new(txtreader);
                     JObject parseddata = JObject.Load(jsonreader);
 
+                    MessagesCnt++;
+
                     if (!(parseddata.ContainsKey("$schemaRef") && ((string)parseddata["$schemaRef"]) == "https://eddn.edcd.io/schemas/commodity/3"))
                         continue;
 
@@ -112,21 +126,16 @@ namespace EdCashtime {
                             if (com.BuyPrice >= scom.MinBuyPrice && com.Demand >= scom.MinBuyDemand)
                                 Alerts.Add($"Buying {scom.DisplayName} @{data.Message.SystemName} - {data.Message.StationName}: {com.Demand}x {com.BuyPrice}");
 
-                            if (com.SellPrice >= scom.MaxSellPrice && com.Stock >= scom.MinStock)
+                            if (com.SellPrice <= scom.MaxSellPrice && com.Stock >= scom.MinStock)
                                 Alerts.Add($"Selling {scom.DisplayName} @{data.Message.SystemName} - {data.Message.StationName}: {com.Stock}x {com.SellPrice}");
                         }
                     }
-
-                    RawLogStrings.Add(rawjson);
                 }
             }, token);
         }
         #endregion
 
         #region Event Handler
-        private void RawLogStrings_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
-            OnPropertyChanged(nameof(CombinedLogStrings));
-        }
 
         private void Alerts_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
             OnPropertyChanged(nameof(CombinedAlertStrings));
@@ -144,6 +153,8 @@ namespace EdCashtime {
         public void Dispose() {
             cancellationTokenSource.Cancel();
             cancellationTokenSource.Dispose();
+
+            Listening = false;
 
             GC.SuppressFinalize(this);
         }

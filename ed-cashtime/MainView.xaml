@@ -5,38 +5,54 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:EdCashtime"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:util="clr-namespace:EdCashtime.Util"
     Title="ED CashTime"
     Width="800"
     Height="450"
     d:DataContext="{d:DesignInstance Type=local:MainViewModel}"
     mc:Ignorable="d">
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="5*" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
+    <Window.Resources>
+        <util:InverseBooleanConverter x:Key="InverseBooleanConverter" />
+    </Window.Resources>
 
-        <TextBox
-            Grid.Row="0"
-            HorizontalScrollBarVisibility="Auto"
-            Text="{Binding CombinedAlertStrings, Mode=OneWay}"
-            VerticalScrollBarVisibility="Auto" />
+    <DockPanel>
+        <StatusBar Height="20" DockPanel.Dock="Bottom">
+            <TextBlock
+                Width="20"
+                IsEnabled="False"
+                Text="{Binding MessagesCnt, Mode=OneWay}" />
+        </StatusBar>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal">
-            <Button
-                x:Name="StartListening"
-                Width="80"
-                Height="20"
-                Margin="5"
-                Click="StartListening_Click"
-                Content="Start Listening" />
-            <Button
-                x:Name="StopListening"
-                Width="80"
-                Height="20"
-                Margin="5"
-                Click="StopListening_Click"
-                Content="Stop Listening" />
-        </StackPanel>
-    </Grid>
+        <Grid DockPanel.Dock="Top">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="10*" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <TextBox
+                Grid.Row="0"
+                HorizontalScrollBarVisibility="Auto"
+                Text="{Binding CombinedAlertStrings, Mode=OneWay}"
+                VerticalScrollBarVisibility="Auto" />
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal">
+                <Button
+                    x:Name="StartListening"
+                    Width="80"
+                    Height="20"
+                    Margin="5"
+                    Click="StartListening_Click"
+                    Content="Start Listening"
+                    IsEnabled="{Binding Listening, Converter={StaticResource InverseBooleanConverter}, Mode=OneWay}" />
+                <Button
+                    x:Name="StopListening"
+                    Width="80"
+                    Height="20"
+                    Margin="5"
+                    Click="StopListening_Click"
+                    Content="Stop Listening"
+                    IsEnabled="{Binding Listening, Mode=OneWay}" />
+            </StackPanel>
+        </Grid>
+    </DockPanel>
 </Window>
