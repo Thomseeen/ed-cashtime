@@ -18,7 +18,7 @@
     <DockPanel>
         <StatusBar Height="20" DockPanel.Dock="Bottom">
             <TextBlock
-                Width="20"
+                Width="200"
                 IsEnabled="False"
                 Text="{Binding MessagesCnt, Mode=OneWay}" />
         </StatusBar>
@@ -32,6 +32,7 @@
             <TextBox
                 Grid.Row="0"
                 HorizontalScrollBarVisibility="Auto"
+                IsReadOnly="True"
                 Text="{Binding CombinedAlertStrings, Mode=OneWay}"
                 VerticalScrollBarVisibility="Auto" />
 
