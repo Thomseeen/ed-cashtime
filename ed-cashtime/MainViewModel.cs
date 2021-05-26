@@ -21,6 +21,27 @@ namespace EdCashtime {
     public class MainViewModel : IDisposable, INotifyPropertyChanged {
         #region Constants
         private const string DEFAULT_LISTEN_URI = "tcp://eddn.edcd.io:9500";
+
+        private static readonly SearchCommodityModel[] DEBUG_SEARCH_COMMODITIES = {
+            new BuyCommodityModel() {
+                Name = "musgarvite",
+                DisplayName = "Musgarvite",
+                MinPrice = 600,
+                MinDemand = 810
+            },
+            new BuyCommodityModel() {
+                Name = "beer",
+                DisplayName = "Beer",
+                MinPrice = 100,
+                MinDemand = 50
+            },
+            new SellCommodityModel() {
+                Name = "beer",
+                DisplayName = "Beer",
+                MaxPrice = 100,
+                MinStock = 50
+            }
+        };
         #endregion
 
         #region Private Fields
@@ -28,31 +49,13 @@ namespace EdCashtime {
         private bool listening;
         private long messagesCnt;
 
-        private List<SearchCommodityModel> searchCommodities = new() {
-            new SearchCommodityModel() {
-                Name = "musgarvite",
-                DisplayName = "Musgarvite",
-                MinBuyPrice = 500,
-                MinBuyDemand = 200
-            },
-            new SearchCommodityModel() {
-                Name = "beer",
-                DisplayName = "Beer",
-                MinBuyPrice = 100,
-                MinBuyDemand = 50
-            },
-            new SearchCommodityModel() {
-                Name = "beer",
-                DisplayName = "Beer",
-                MaxSellPrice = 100,
-                MinStock = 50
-            }
-        };
         #endregion
 
         #region Properties
         public ObservableCollection<string> Alerts { get; private set; }
         public string CombinedAlertStrings => string.Join("\r\n", Alerts);
+
+        public ObservableCollection<SearchCommodityModel> SearchCommodities { get; private set; }
 
         public long MessagesCnt {
             get { return messagesCnt; }
@@ -69,6 +72,8 @@ namespace EdCashtime {
         public MainViewModel() {
             Alerts = new ObservableCollection<string>();
             Alerts.CollectionChanged += Alerts_CollectionChanged;
+
+            SearchCommodities = new ObservableCollection<SearchCommodityModel>(DEBUG_SEARCH_COMMODITIES);
 
             Listening = false;
         }
@@ -118,17 +123,16 @@ namespace EdCashtime {
                     if (!(parseddata.ContainsKey("$schemaRef") && ((string)parseddata["$schemaRef"]) == "https://eddn.edcd.io/schemas/commodity/3"))
                         continue;
 
-                    Commodities data = Commodities.FromJson(rawjson);
+                    Commodities data = Commodities.FromJObject(parseddata);
 
-                    foreach (SearchCommodityModel scom in searchCommodities) {
+                    foreach (SearchCommodityModel scom in SearchCommodities) {
                         Commodity com = data.Message.Commodities.SingleOrDefault(com => com.Name.ToLower(CultureInfo.InvariantCulture) == scom.Name);
-                        if (com != null) {
-                            if (com.BuyPrice >= scom.MinBuyPrice && com.Demand >= scom.MinBuyDemand)
-                                Alerts.Add($"Buying {scom.DisplayName} @{data.Message.SystemName} - {data.Message.StationName}: {com.Demand}x {com.BuyPrice}");
 
-                            if (com.SellPrice <= scom.MaxSellPrice && com.Stock >= scom.MinStock)
-                                Alerts.Add($"Selling {scom.DisplayName} @{data.Message.SystemName} - {data.Message.StationName}: {com.Stock}x {com.SellPrice}");
-                        }
+                        if (com == null)
+                            continue;
+
+                        if (scom.TestLimits(com))
+                            Alerts.Add(scom.AlertString(data.Message, com));
                     }
                 }
             }, token);
@@ -136,7 +140,6 @@ namespace EdCashtime {
         #endregion
 
         #region Event Handler
-
         private void Alerts_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) {
             OnPropertyChanged(nameof(CombinedAlertStrings));
         }

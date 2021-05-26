@@ -16,6 +16,7 @@ namespace EdCashtime.Models {
     using J = Newtonsoft.Json.JsonPropertyAttribute;
     using R = Newtonsoft.Json.Required;
     using N = Newtonsoft.Json.NullValueHandling;
+    using Newtonsoft.Json.Linq;
 
     public partial class Commodities {
         [J("$schemaRef", Required = R.Always)] public string SchemaRef { get; set; }
@@ -72,6 +73,8 @@ namespace EdCashtime.Models {
 
     public partial class Commodities {
         public static Commodities FromJson(string json) => JsonConvert.DeserializeObject<Commodities>(json, Converter.Settings);
+
+        public static Commodities FromJObject(JObject obj) => obj.ToObject<Commodities>(JsonSerializer.Create(Converter.Settings));
     }
 
     public static class Serialize {

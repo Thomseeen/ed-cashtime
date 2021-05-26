@@ -25,7 +25,8 @@
 
         <Grid DockPanel.Dock="Top">
             <Grid.RowDefinitions>
-                <RowDefinition Height="10*" />
+                <RowDefinition Height="5*" />
+                <RowDefinition Height="5*" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
@@ -36,7 +37,18 @@
                 Text="{Binding CombinedAlertStrings, Mode=OneWay}"
                 VerticalScrollBarVisibility="Auto" />
 
-            <StackPanel Grid.Row="1" Orientation="Horizontal">
+            <ListView Grid.Row="1" ItemsSource="{Binding SearchCommodities, Mode=OneWay}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn DisplayMemberBinding="{Binding DisplayName}" Header="Name" />
+                        <GridViewColumn DisplayMemberBinding="{Binding BestStationName}" Header="Best Station" />
+                        <GridViewColumn DisplayMemberBinding="{Binding BestSystemName}" Header="Best System" />
+                        <GridViewColumn DisplayMemberBinding="{Binding BestDescString}" Header="Data" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal">
                 <Button
                     x:Name="StartListening"
                     Width="80"
