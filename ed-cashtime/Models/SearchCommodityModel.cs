@@ -10,7 +10,7 @@ namespace EdCashtime.Models {
 
         public virtual string AlertString(Message metadata, Commodity com) => throw new NotImplementedException();
 
-
+        public virtual bool CompareComs(Commodity oldcom, Commodity newcom) => throw new NotImplementedException();
     }
 
     public class BuyCommodityModel : SearchCommodityModel {
@@ -25,6 +25,10 @@ namespace EdCashtime.Models {
         public override string AlertString(Message metadata, Commodity com) {
             return $"Buying {DisplayName} @{metadata.SystemName} - {metadata.StationName}: {com.Demand}x {com.BuyPrice}";
         }
+
+        public override bool CompareComs(Commodity oldcom, Commodity newcom) {
+            return newcom.BuyPrice > oldcom.BuyPrice && (newcom.Demand > oldcom.Demand || newcom.Demand > MinDemand);
+        }
     }
 
     public class SellCommodityModel : SearchCommodityModel {
@@ -32,16 +36,16 @@ namespace EdCashtime.Models {
 
         public long MinStock { get; set; }
 
-        public long BestPrice { get; set; }
-
-        public long BestStock { get; set; }
-
         public override bool TestLimits(Commodity com) {
             return com.SellPrice <= MaxPrice && com.Stock > MinStock;
         }
 
         public override string AlertString(Message metadata, Commodity com) {
             return $"Selling {DisplayName} @{metadata.SystemName} - {metadata.StationName}: {com.Stock}x {com.SellPrice}";
+        }
+
+        public override bool CompareComs(Commodity oldcom, Commodity newcom) {
+            return newcom.SellPrice < oldcom.SellPrice && (newcom.Stock > oldcom.Stock || newcom.Stock > MinStock);
         }
     }
 }

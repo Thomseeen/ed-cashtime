@@ -16,6 +16,10 @@ using Newtonsoft.Json.Linq;
 using System.IO;
 using System.Globalization;
 using EdCashtime.Models;
+using System.Windows;
+using System.Windows.Data;
+
+using Microsoft.Toolkit.Uwp.Notifications;
 
 namespace EdCashtime {
     public class MainViewModel : IDisposable, INotifyPropertyChanged {
@@ -48,7 +52,6 @@ namespace EdCashtime {
         private CancellationTokenSource cancellationTokenSource;
         private bool listening;
         private long messagesCnt;
-
         #endregion
 
         #region Properties
@@ -131,8 +134,15 @@ namespace EdCashtime {
                         if (com == null)
                             continue;
 
-                        if (scom.TestLimits(com))
+                        if (scom.TestLimits(com)) {
                             Alerts.Add(scom.AlertString(data.Message, com));
+                            new ToastContentBuilder()
+                                .AddArgument("action", "viewAlerts")
+                                .AddArgument("conversationId", 9813)
+                                .AddText("Cash Time!")
+                                .AddText(scom.AlertString(data.Message, com))
+                                .Show();
+                        }
                     }
                 }
             }, token);
@@ -158,6 +168,9 @@ namespace EdCashtime {
             cancellationTokenSource.Dispose();
 
             Listening = false;
+
+            ToastNotificationManagerCompat.History.Clear();
+            ToastNotificationManagerCompat.Uninstall();
 
             GC.SuppressFinalize(this);
         }

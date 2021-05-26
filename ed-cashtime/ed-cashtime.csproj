@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net5.0-windows10.0.19041.0</TargetFramework>
     <RootNamespace>EdCashtime</RootNamespace>
     <UseWPF>true</UseWPF>
     <StartupObject>EdCashtime.App</StartupObject>
@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Ionic.Zlib.Core" Version="1.0.0" />
+    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.0.2" />
     <PackageReference Include="NetMQ" Version="4.0.1.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
